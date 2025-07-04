@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Agents & Developers - RealEstate{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6" aria-label="breadcrumb">
+      <ol class="flex items-center space-x-2 text-sm text-gray-500">
+        <li>
+          <a href="{% url 'home' %}" class="hover:text-zaffre-700 transition-colors">Home</a>
+          <svg class="inline-block w-4 h-4 mx-1 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </li>
+        <li class="text-zaffre-800 font-semibold">Agents & Developers</li>
+      </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-zaffre-800 mb-2">Agents & Developers</h1>
+      <p class="text-lg text-gray-500">Connect with experienced real estate professionals who will guide you through your property journey</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Agents Grid -->
+        <main class="flex-1">
+          <!-- Results Header -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div>
+              <h5 class="text-xl font-bold text-zaffre-800 mb-1">{{ page_obj.paginator.count }} Agents Found</h5>
+              <p class="text-gray-500 text-sm mb-0">Connect with experienced professionals</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-sm font-medium text-gray-600 mb-0">Sort by:</label>
+              <select class="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:ring-2 focus:ring-gold-400 focus:border-gold-400 outline-none" style="width: auto;" onchange="updateSort(this.value)">
+                <option value="rating" {% if current_filters.sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                <option value="experience" {% if current_filters.sort == 'experience' %}selected{% endif %}>Most Experienced</option>
+                <option value="properties" {% if current_filters.sort == 'properties' %}selected{% endif %}>Most Properties</option>
+                <option value="reviews" {% if current_filters.sort == 'reviews' %}selected{% endif %}>Most Reviews</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          {% if page_obj.has_other_pages %}
+          <nav aria-label="Agents pagination" class="mb-8">
+            <ul class="flex justify-center items-center gap-1">
+              {% if page_obj.has_previous %}
+                <li>
+                  <a class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition" href="?{% for key, value in current_filters.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+              {% endif %}
+              {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                  <li>
+                    <span class="px-3 py-2 rounded-lg bg-gold-500 text-white font-bold">{{ num }}</span>
+                  </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                  <li>
+                    <a class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition" href="?{% for key, value in current_filters.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              {% if page_obj.has_next %}
+                <li>
+                  <a class="px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition" href="?{% for key, value in current_filters.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+          {% endif %}
+
+          <!-- Agents Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {% for agent in page_obj %}
+            <div>
+              <div class="bg-white rounded-2xl shadow-lg flex flex-col items-center p-8 h-full">
+                <div class="relative flex flex-col items-center mb-4">
+                  {% if agent.profile_image %}
+                    <img src="{{ agent.profile_image.url }}" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shadow mb-2" alt="{{ agent.user.get_full_name }}">
+                  {% else %}
+                    <img src="/static/placeholder-user.jpg" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 shadow mb-2" alt="No Agent Image">
+                  {% endif %}
+                  {% if agent.is_featured %}
+                    <span class="bg-gold-400 text-white text-xs font-bold px-8 py-1 rounded-full absolute -bottom-3 left-1/2 -translate-x-1/2 shadow min-w-[120px] text-center whitespace-nowrap">Top Agent</span>
+                  {% endif %}
+                </div>
+                <div class="mt-6 text-center w-full">
+                  <h5 class="text-xl font-bold text-zaffre-800 mb-1">{{ agent.user.get_full_name }}</h5>
+                  <p class="text-gray-500 text-sm mb-1">{{ agent.get_agent_type_display|default:'—' }}</p>
+                  <p class="text-zaffre-600 text-base font-semibold mb-2">{{ agent.company|default:'—' }}</p>
+                  <div class="flex items-center justify-center text-gray-400 mb-3">
+                    <i class="fas fa-map-marker-alt mr-1"></i>
+                    <span class="text-sm">{{ agent.location|default:'—' }}</span>
+                  </div>
+                  <div class="flex items-center justify-center text-gray-400 mb-3">
+                    <i class="fas fa-briefcase mr-1"></i>
+                    <span class="text-sm">{{ agent.experience_years|default:'0' }} years experience</span>
+                  </div>
+                  <div class="flex justify-center items-center gap-6 mb-3">
+                    <div class="flex flex-col items-center">
+                      <span class="flex items-center text-gold-400 font-bold text-base"><i class="fas fa-star mr-1"></i>{{ agent.rating }}</span>
+                      <span class="text-xs text-gray-400">Rating</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <span class="font-bold text-base text-zaffre-800">{{ agent.total_reviews }}</span>
+                      <span class="text-xs text-gray-400">Reviews</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <span class="font-bold text-base text-zaffre-800">{{ agent.get_properties_count }}</span>
+                      <span class="text-xs text-gray-400">Properties</span>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap justify-center gap-2 mb-4">
+                    {% if agent.get_specialties_list %}
+                      {% for specialty in agent.get_specialties_list|slice:":2" %}
+                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">{{ specialty }}</span>
+                      {% endfor %}
+                    {% else %}
+                      <span class="bg-gray-100 text-gray-400 px-3 py-1 rounded-full text-xs font-semibold">—</span>
+                    {% endif %}
+                  </div>
+                  <div class="flex items-center justify-center text-gray-400 mb-3">
+                    <i class="fas fa-globe mr-1"></i>
+                    <span class="text-sm">{% if agent.get_languages_list %}{{ agent.get_languages_list|join:", " }}{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2 w-full mt-auto">
+                  <button class="bg-zaffre-600 hover:bg-zaffre-700 text-white font-semibold py-2 rounded-lg flex items-center justify-center transition-all duration-200"><i class="fas fa-phone mr-2"></i>Call Now</button>
+                  <div class="flex gap-2">
+                    <button class="border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 font-semibold py-2 rounded-lg flex-1 flex items-center justify-center transition-all duration-200"><i class="fas fa-envelope mr-2"></i>Email</button>
+                    <button class="border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 font-semibold py-2 rounded-lg flex-1 flex items-center justify-center transition-all duration-200"><i class="fas fa-comment mr-2"></i>Chat</button>
+                  </div>
+                  <button class="text-zaffre-600 hover:underline font-semibold py-2 rounded-lg flex items-center justify-center transition-all duration-200">View Full Profile</button>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full">
+              <div class="text-center py-10">
+                <i class="fas fa-user-tie fa-3x text-gray-300 mb-3"></i>
+                <h4 class="text-xl font-bold text-zaffre-800 mb-2">No Agents Found</h4>
+                <p class="text-gray-500 mb-4">Try adjusting your search criteria or browse all agents.</p>
+                <a href="{% url 'agent_list' %}" class="bg-gold-500 hover:bg-gold-600 text-white font-bold py-2 px-6 rounded-lg text-base transition-all duration-200">View All Agents</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </main>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateSort(sortValue) {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', sortValue);
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

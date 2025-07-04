@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RealEstate - Find Your Dream Home{% endblock %}</title>
+    
+    <!-- Tailwind CSS with Custom Configuration -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        zaffre: {
+                            50: '#e6e9f3',
+                            100: '#c2c8de',
+                            200: '#9ca5c7',
+                            300: '#6c7bb0',
+                            400: '#3d4e8a',
+                            500: '#20306a',
+                            600: '#16225a',
+                            700: '#101a45',
+                            800: '#0b1332',
+                            900: '#081a51',
+                        },
+                        gold: {
+                            50: '#f9f6e7',
+                            100: '#f3eac2',
+                            200: '#ecde9c',
+                            300: '#e5d16c',
+                            400: '#dec43d',
+                            500: '#d4af37',
+                            600: '#b99a2f',
+                            700: '#9e8427',
+                            800: '#836e1f',
+                            900: '#6a5917',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="flex items-center group">
+                    <div class="mr-3 bg-gradient-to-br from-zaffre-600 to-zaffre-800 rounded-xl w-10 h-10 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                        <span class="text-white font-bold text-lg">RE</span>
+                    </div>
+                    <span class="text-2xl font-bold text-zaffre-700 group-hover:text-zaffre-800 transition-colors">RealEstate</span>
+                </a>
+
+                <!-- Actions -->
+                <div class="hidden xl:flex items-center space-x-3">
+                    <a href="#favorites" class="inline-flex items-center px-4 py-2 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md">
+                        <i class="fas fa-heart mr-2"></i>
+                        <span class="hidden lg:inline">Favorites</span>
+                    </a>
+                    {% if user.is_authenticated %}
+                        <div class="relative group" tabindex="0">
+                            <button class="inline-flex items-center px-4 py-2 border border-zaffre-600 text-zaffre-600 bg-white hover:bg-zaffre-50 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-zaffre-500">
+                                <i class="fas fa-user mr-2"></i>
+                                <span class="hidden lg:inline">{{ user.username }}</span>
+                                <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto transition-opacity duration-200 z-50">
+                                <a href="{% url 'user_dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-zaffre-50">Dashboard</a>
+                                {% if user.userprofile.account_type == 'agent' %}
+                                <a href="{% url 'agent_dashboard' %}" class="block px-4 py-2 text-gray-700 hover:bg-zaffre-50">Agent Dashboard</a>
+                                {% endif %}
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-zaffre-50">Logout</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-2 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md">
+                            <i class="fas fa-user mr-2"></i>
+                            <span class="hidden lg:inline">Sign In</span>
+                        </a>
+                        <a href="{% url 'register' %}" class="inline-flex items-center px-4 py-2 border border-gold-600 text-gold-600 hover:bg-gold-50 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            <span class="hidden lg:inline">Sign Up</span>
+                        </a>
+                    {% endif %}
+                    <a href="#list-property" class="inline-flex items-center px-6 py-2 bg-zaffre-600 text-white rounded-lg text-sm font-semibold hover:bg-zaffre-700 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5">
+                        List Property
+                    </a>
+                </div>
+                
+                <!-- Mobile Toggle -->
+                <div>
+                    <button id="mobile-menu-toggle" class="text-gray-700 hover:text-zaffre-600 focus:outline-none focus:ring-2 focus:ring-zaffre-500 focus:ring-offset-2 rounded-lg p-2 transition-colors">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Navigation -->
+                <!-- <nav class="hidden xl:flex space-x-1">
+                    <a href="{% url 'properties_sale' %}" class="px-4 py-2 text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-medium">Properties for Sale</a>
+                    <a href="{% url 'properties_rent' %}" class="px-4 py-2 text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-medium">Properties for Rent</a>
+                    <a href="{% url 'shortlets' %}" class="px-4 py-2 text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-medium">Shortlets</a>
+                    <a href="{% url 'agent_list' %}" class="px-4 py-2 text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-medium">Agents/Developers</a>
+                    <a href="#about" class="px-4 py-2 text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-medium">About Us</a>
+                    <a href="#contact" class="px-4 py-2 text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-medium">Contact</a>
+                </nav> -->
+                
+            
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="fixed top-0 right-0 h-full w-full max-w-sm z-50 bg-white shadow-2xl transform translate-x-full transition-transform duration-300">
+                <div class="relative h-full flex flex-col justify-between">
+                    <!-- Close Button -->
+                    <div class="flex justify-end p-4">
+                        <button id="mobile-menu-close" class="text-gray-700 hover:text-zaffre-600 focus:outline-none focus:ring-2 focus:ring-zaffre-500 rounded-lg p-2 transition-colors">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Navigation Links -->
+                    <div class="flex-1 flex flex-col space-y-1 mt-2 px-6">
+                        <a href="{% url 'properties_sale' %}" class="block px-4 py-4 text-lg text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-semibold">Properties for Sale</a>
+                        <a href="{% url 'properties_rent' %}" class="block px-4 py-4 text-lg text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-semibold">Properties for Rent</a>
+                        <a href="{% url 'shortlets' %}" class="block px-4 py-4 text-lg text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-semibold">Shortlets</a>
+                        <a href="{% url 'agent_list' %}" class="block px-4 py-4 text-lg text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-semibold">Agents/Developers</a>
+                        <a href="#about" class="block px-4 py-4 text-lg text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-semibold">About Us</a>
+                        <a href="#contact" class="block px-4 py-4 text-lg text-gray-700 hover:text-zaffre-700 hover:bg-zaffre-50 rounded-lg transition-all duration-200 font-semibold">Contact</a>
+                    </div>
+                    <!-- Actions at Bottom -->
+                    <div class="flex flex-col space-y-3 px-6 pb-8">
+                        <a href="#favorites" class="inline-flex items-center px-4 py-3 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-base font-medium transition-all duration-200">
+                            <i class="fas fa-heart mr-2"></i>
+                            <span>Favorites</span>
+                        </a>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'user_dashboard' %}" class="inline-flex items-center px-4 py-3 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-base font-medium transition-all duration-200">
+                            <i class="fas fa-tachometer-alt mr-2"></i>
+                            <span>User Dashboard</span>
+                        </a>
+                        {% if user.userprofile.account_type == 'agent' %}
+                        <a href="{% url 'agent_dashboard' %}" class="inline-flex items-center px-4 py-3 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-base font-medium transition-all duration-200">
+                            <i class="fas fa-building mr-2"></i>
+                            <span>Agent Dashboard</span>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'logout' %}" class="inline-flex items-center px-4 py-3 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-base font-medium transition-all duration-200">
+                            <i class="fas fa-sign-out-alt mr-2"></i>
+                            <span>Logout</span>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}" class="inline-flex items-center px-4 py-3 border border-zaffre-600 text-zaffre-600 hover:bg-zaffre-50 rounded-lg text-base font-medium transition-all duration-200">
+                            <i class="fas fa-user mr-2"></i>
+                            <span>Sign In</span>
+                        </a>
+                        <a href="{% url 'register' %}" class="inline-flex items-center px-4 py-3 border border-gold-600 text-gold-600 hover:bg-gold-50 rounded-lg text-base font-medium transition-all duration-200">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            <span>Sign Up</span>
+                        </a>
+                        {% endif %}
+                        <a href="#list-property" class="inline-flex items-center justify-center px-6 py-3 bg-zaffre-600 text-white rounded-lg text-base font-semibold hover:bg-zaffre-700 transition-all duration-200">
+                            List Property
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="lg:col-span-1">
+                    <div class="flex items-center mb-6">
+                        <div class="mr-3 bg-gradient-to-br from-zaffre-600 to-zaffre-800 rounded-xl w-10 h-10 flex items-center justify-center shadow-lg">
+                            <span class="text-white font-bold text-lg">RE</span>
+                        </div>
+                        <span class="text-xl font-bold text-gold-400">RealEstate</span>
+                    </div>
+                    <p class="text-gray-300 text-sm mb-6 leading-relaxed">Your trusted partner in finding the perfect property. We connect buyers, sellers, and renters with experienced professionals.</p>
+                    <div class="flex space-x-3">
+                        <a href="#" class="w-10 h-10 border border-gray-600 hover:bg-zaffre-600 hover:border-zaffre-600 rounded-full flex items-center justify-center transition-all duration-200 hover:transform hover:scale-110">
+                            <i class="fab fa-facebook text-sm"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 border border-gray-600 hover:bg-zaffre-600 hover:border-zaffre-600 rounded-full flex items-center justify-center transition-all duration-200 hover:transform hover:scale-110">
+                            <i class="fab fa-twitter text-sm"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 border border-gray-600 hover:bg-zaffre-600 hover:border-zaffre-600 rounded-full flex items-center justify-center transition-all duration-200 hover:transform hover:scale-110">
+                            <i class="fab fa-instagram text-sm"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 border border-gray-600 hover:bg-zaffre-600 hover:border-zaffre-600 rounded-full flex items-center justify-center transition-all duration-200 hover:transform hover:scale-110">
+                            <i class="fab fa-linkedin text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div>
+                    <h5 class="text-lg font-semibold mb-6 text-white">Quick Links</h5>
+                    <ul class="space-y-3">
+                        <li><a href="{% url 'properties_sale' %}" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Properties for Sale</a></li>
+                        <li><a href="{% url 'properties_rent' %}" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Properties for Rent</a></li>
+                        <li><a href="{% url 'shortlets' %}" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Shortlets</a></li>
+                        <li><a href="{% url 'agent_list' %}" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Find an Agent</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">List Your Property</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Support -->
+                <div>
+                    <h5 class="text-lg font-semibold mb-6 text-white">Support</h5>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Help Center</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">FAQ</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-gold-400 transition-colors duration-200 text-sm">Terms of Service</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Contact & Newsletter -->
+                <div>
+                    <h5 class="text-lg font-semibold mb-6 text-white">Stay Connected</h5>
+                    <div class="mb-6 space-y-3">
+                        <div class="flex items-center text-gray-300">
+                            <i class="fas fa-phone mr-3 text-gold-400"></i>
+                            <span class="text-sm">+234 801 234 5678</span>
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <i class="fas fa-envelope mr-3 text-gold-400"></i>
+                            <span class="text-sm">info@realestate.ng</span>
+                        </div>
+                        <div class="flex items-start text-gray-300">
+                            <i class="fas fa-map-marker-alt mr-3 text-gold-400 mt-1"></i>
+                            <span class="text-sm">123 Real Estate Ave, Lagos</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="text-sm font-semibold mb-3 text-white">Newsletter</h6>
+                        <form class="flex">
+                            <input type="email" class="flex-1 rounded-l-lg px-4 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-gold-400 text-sm" placeholder="Your email">
+                            <button type="submit" class="bg-gold-500 hover:bg-gold-600 text-gray-900 px-4 py-2 rounded-r-lg font-semibold transition-colors duration-200 text-sm">
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-8 border-gray-700">
+            <div class="text-center">
+                <p class="text-gray-400 text-sm">© 2024 RealEstate. All rights reserved. | Built with Django</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle with overlay and close button
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggle = document.getElementById('mobile-menu-toggle');
+            const menu = document.getElementById('mobile-menu');
+            const closeBtn = document.getElementById('mobile-menu-close');
+
+            function openMenu() {
+                menu.classList.remove('translate-x-full');
+                menu.classList.add('translate-x-0');
+                toggle.classList.add('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+            function closeMenu() {
+                menu.classList.remove('translate-x-0');
+                menu.classList.add('translate-x-full');
+                toggle.classList.remove('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            if (toggle && menu && closeBtn) {
+                toggle.addEventListener('click', openMenu);
+                closeBtn.addEventListener('click', closeMenu);
+
+                // Optional: close menu on ESC key
+                document.addEventListener('keydown', function(e) {
+                    if (!menu.classList.contains('translate-x-full') && e.key === 'Escape') {
+                        closeMenu();
+                    }
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
