@@ -1,3 +1,0 @@
-# This file tells Poetry and Render to use Python 3.12
-[tool.poetry.dependencies]
-python = "^3.12"
